@@ -28,13 +28,15 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
 }
 
 resource "aws_eks_cluster" "aws_eks" {
-    name     = var.cluster_name
+    name    = var.cluster_name
+    version = var.cluster_version
+
     role_arn = aws_iam_role.eks_cluster.arn
 
     enabled_cluster_log_types = ["api", "audit"]
 
     vpc_config {
-        subnet_ids = [var.subnet_id_1a, var.subnet_id_1b]
+        subnet_ids = var.subnets
     }
 
     tags = {
@@ -44,7 +46,7 @@ resource "aws_eks_cluster" "aws_eks" {
 }
 
 resource "aws_iam_role" "eks_nodes" {
-    name = "${var.node_name}-EKSNode"
+    name = "${var.node_group_name}-EKSNode"
 
     assume_role_policy = <<POLICY
 {
@@ -79,9 +81,9 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
 
 resource "aws_eks_node_group" "node" {
     cluster_name    = aws_eks_cluster.aws_eks.name
-    node_group_name = var.node_name
+    node_group_name = var.node_group_name
     node_role_arn   = aws_iam_role.eks_nodes.arn
-    subnet_ids      = [var.subnet_id_1a, var.subnet_id_1b]
+    subnet_ids      = var.subnets
 
     scaling_config {
         desired_size = 1
@@ -104,3 +106,11 @@ resource "aws_cloudwatch_log_group" "eks_log_group" {
     retention_in_days = 30
 }
 
+resource "aws_security_group_rule" "cluster_ingress_https" {
+    description       = "Allow incoming traffic on TCP port 443."
+    protocol          = "tcp"
+    security_group_id = aws_eks_cluster.aws_eks.vpc_config[0].cluster_security_group_id
+    from_port         = 443
+    to_port           = 443
+    type              = "ingress"
+}

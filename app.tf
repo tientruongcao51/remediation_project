@@ -1,6 +1,6 @@
 provider "aws" {
     profile = "default"
-    region = var.region
+    region  = var.region
 }
 terraform {
     required_providers {
@@ -13,15 +13,15 @@ terraform {
 }
 
 module "vpc" {
-    source = "./tf_modules/vpc"
+    source       = "./tf_modules/vpc"
     cluster_name = var.cluster_name
 }
 
 module "eks" {
     source = "./tf_modules/eks"
 
-    cluster_name = var.cluster_name
-    node_name = var.node_name
-    subnet_id_1a = module.vpc.private_subnet_1a_id
-    subnet_id_1b = module.vpc.private_subnet_1b_id
+    cluster_name    = var.cluster_name
+    cluster_version = var.cluster_version
+    node_group_name = var.node_group_name
+    subnets         = [module.vpc.private_subnet_1a_id, module.vpc.private_subnet_1b_id]
 }
