@@ -1,0 +1,1 @@
+terraform destroy -var-file=terraform-dev.tfvars

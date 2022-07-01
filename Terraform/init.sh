@@ -1,0 +1,1 @@
+terraform init -get=true -input=false -no-color -backend-config='./tf_backend/backend-dev.config'

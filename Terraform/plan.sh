@@ -1,0 +1,1 @@
+terraform plan -no-color -var-file=terraform-dev.tfvars

@@ -1,0 +1,5 @@
+app_env = "dev"
+cluster_name = "eks-cluster-demo-dev"
+node_name = "eks-node-demo-dev"
+cluster_version = "1.22"
+region = "us-east-1"

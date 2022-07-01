@@ -1,0 +1,1 @@
+terrafrom apply -no-color -auto-approve -var-file=terrafrom-dev.tfvars
