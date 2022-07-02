@@ -1,1 +1,1 @@
-aws s3api create-bucket --bucket eks-application-fileserver-s3-dev --region us-east-1
+aws s3api create-bucket --bucket eks-application-fileserver-s3-dev
