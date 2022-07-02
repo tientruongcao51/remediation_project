@@ -38,6 +38,16 @@ resource "aws_eks_cluster" "aws_eks" {
     vpc_config {
         subnet_ids = var.subnets
     }
+    dynamic "encryption_config" {
+        for_each = toset(var.cluster_encryption_config)
+
+        content {
+            provider {
+                key_arn = encryption_config.value["provider_key_arn"]
+            }
+            resources = encryption_config.value["resources"]
+        }
+    }
 
     tags = {
         Name = var.cluster_name
@@ -90,7 +100,9 @@ resource "aws_eks_node_group" "node" {
         max_size     = 1
         min_size     = 1
     }
-
+    tags = {
+        "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    }
     # Ensure that IAM Role permissions are created before and deleted after EKS Node Group handling.
     # Otherwise, EKS will not be able to properly delete EC2 Instances and Elastic Network Interfaces.
     depends_on = [
@@ -113,4 +125,5 @@ resource "aws_security_group_rule" "cluster_ingress_https" {
     from_port         = 443
     to_port           = 443
     type              = "ingress"
+    cidr_blocks       = ["10.0.0.0/8"]
 }

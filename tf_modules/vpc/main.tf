@@ -37,7 +37,7 @@ resource "aws_subnet" "private-1b" {
 resource "aws_subnet" "public-1a" {
     vpc_id                  = aws_vpc.main.id
     cidr_block              = "10.0.64.0/19"
-    availability_zone       = "ap-southeast-1"
+    availability_zone       = "ap-southeast-1a"
     map_public_ip_on_launch = true
 
     tags = {
@@ -58,4 +58,76 @@ resource "aws_subnet" "public-1b" {
         "kubernetes.io/role/elb"                    = "1"
         "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     }
+}
+
+resource "aws_internet_gateway" "igw" {
+    vpc_id = aws_vpc.main.id
+
+    tags = {
+        Name = "igw"
+    }
+}
+resource "aws_eip" "nat" {
+    vpc = true
+
+    tags = {
+        Name = "nat"
+    }
+}
+
+resource "aws_nat_gateway" "nat" {
+    allocation_id = aws_eip.nat.id
+    subnet_id     = aws_subnet.public-1a.id
+
+    tags = {
+        Name = "nat"
+    }
+
+    depends_on = [aws_internet_gateway.igw]
+}
+
+resource "aws_route_table" "private" {
+    vpc_id = aws_vpc.main.id
+
+    route {
+        cidr_block     = "0.0.0.0/0"
+        nat_gateway_id = aws_nat_gateway.nat.id
+    }
+
+    tags = {
+        Name = "private"
+    }
+}
+
+resource "aws_route_table" "public" {
+    vpc_id = aws_vpc.main.id
+
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.igw.id
+    }
+
+    tags = {
+        Name = "public"
+    }
+}
+
+resource "aws_route_table_association" "private-us-east-1a" {
+    subnet_id      = aws_subnet.private-1a.id
+    route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private-us-east-1b" {
+    subnet_id      = aws_subnet.private-1b.id
+    route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "public-us-east-1a" {
+    subnet_id      = aws_subnet.public-1a.id
+    route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public-us-east-1b" {
+    subnet_id      = aws_subnet.public-1b.id
+    route_table_id = aws_route_table.public.id
 }
