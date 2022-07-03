@@ -33,8 +33,6 @@ resource "aws_eks_cluster" "aws_eks" {
 
     role_arn = aws_iam_role.eks_cluster.arn
 
-    enabled_cluster_log_types = ["api", "audit"]
-
     vpc_config {
         subnet_ids = var.subnets
     }
@@ -52,7 +50,6 @@ resource "aws_eks_cluster" "aws_eks" {
     tags = {
         Name = var.cluster_name
     }
-    depends_on = [aws_cloudwatch_log_group.eks_log_group]
 }
 
 resource "aws_iam_role" "eks_nodes" {
@@ -110,12 +107,6 @@ resource "aws_eks_node_group" "node" {
         aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
         aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
     ]
-}
-
-resource "aws_cloudwatch_log_group" "eks_log_group" {
-    # The log group name format is /aws/eks/<cluster-name>/cluster
-    name              = "/aws/eks/${var.cluster_name}/cluster"
-    retention_in_days = 30
 }
 
 resource "aws_security_group_rule" "cluster_ingress_https" {

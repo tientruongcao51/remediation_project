@@ -1,0 +1,19 @@
+---
+- name: Remediate EKS cluster version
+  hosts: localhost
+  gather_facts: false
+  vars_files: variables.yml
+  tasks:
+    - name: EKS Cluster Information
+      describe_eks_cluster:
+        region: "{{ region }}"
+        cluster_name: "{{ cluster_name }}"
+      register: eks_cluster
+
+    - name: Update Cluster Version
+      update_cluster_version:
+        region: "{{ region }}"
+        current_version: "{{ item }}"
+        lasted_version: "{{ lasted_version }}"
+      with_items:
+        - "{{ eks_cluster['resourcesVpcConfig']['version'] }}"

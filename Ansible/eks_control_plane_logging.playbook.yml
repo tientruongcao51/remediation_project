@@ -1,0 +1,18 @@
+---
+- name: Remediate EKS control plane logging is enabled
+  hosts: localhost
+  gather_facts: false
+  vars_files: variables.yml
+  tasks:
+    - name: EKS Cluster information
+      describe_eks_cluster:
+        region: "{{ region }}"
+        cluster_name: "{{ cluster_name }}"
+      register: eks_cluster
+
+    - name: Update EKS cluster control plane logging
+      update_cluster_logging_enabled:
+        region: "{{ region }}"
+        cluster_logging_enabled: "{{ item }}"
+      with_items:
+        - "{{ securityGroupIds: eks_cluster['logging']['clusterLogging'][enabled] }}"
